@@ -58,6 +58,67 @@
         }
 
         /* ============================================ */
+        /*  LIGHT THEME OVERRIDES                       */
+        /* ============================================ */
+        [data-theme="light"] {
+            --bg-primary: #f0f2f7;
+            --bg-secondary: #e2e6ee;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f7f8fb;
+            --bg-input: #f4f5f9;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --text-accent: #6366f1;
+
+            --border-primary: rgba(99, 102, 241, 0.25);
+            --border-secondary: rgba(148, 163, 184, 0.25);
+            --border-glow: rgba(99, 102, 241, 0.35);
+
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.1);
+
+            --type-pvt: #d97706;
+            --type-univ: #0891b2;
+            --type-sf: #7c3aed;
+            --type-girls: #db2777;
+            --type-minority: #059669;
+        }
+
+        [data-theme="light"] body::before {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 60%);
+        }
+
+        [data-theme="light"] .save-bar {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        [data-theme="light"] .type-legend {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        [data-theme="light"] .app-header h1 {
+            background: linear-gradient(135deg, #1e293b 0%, #6366f1 50%, #0891b2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        [data-theme="light"] .stat-card .stat-value {
+            background: linear-gradient(135deg, #4f46e5, #0891b2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ============================================ */
         /*  BASE RESET & TYPOGRAPHY                     */
         /* ============================================ */
         *, *::before, *::after {
@@ -934,6 +995,125 @@
         }
 
         /* ============================================ */
+        /*  THEME TOGGLE                                */
+        /* ============================================ */
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .theme-toggle-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-input);
+            border: 1px solid var(--border-secondary);
+            border-radius: 30px;
+            transition: var(--transition-normal);
+            overflow: hidden;
+        }
+
+        .toggle-track::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            opacity: 1;
+            transition: var(--transition-normal);
+        }
+
+        .toggle-switch input:checked ~ .toggle-track::before {
+            background: linear-gradient(135deg, #bae6fd, #7dd3fc);
+            opacity: 1;
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: #fbbf24;
+            border-radius: 50%;
+            transition: var(--transition-smooth);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+        }
+
+        .toggle-switch input:checked ~ .toggle-thumb {
+            left: 29px;
+            background: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+        }
+
+        /* Stars in dark mode track */
+        .toggle-track .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: var(--transition-normal);
+        }
+        .toggle-track .star:nth-child(1) { top: 8px; right: 10px; }
+        .toggle-track .star:nth-child(2) { top: 16px; right: 16px; }
+        .toggle-track .star:nth-child(3) { top: 6px; right: 22px; }
+
+        .toggle-switch input:checked ~ .toggle-track .star {
+            opacity: 0;
+        }
+
+        /* Cloud in light mode track */
+        .toggle-track .cloud {
+            position: absolute;
+            width: 10px;
+            height: 4px;
+            background: white;
+            border-radius: 10px;
+            opacity: 0;
+            transition: var(--transition-normal);
+        }
+        .toggle-track .cloud:nth-child(4) { bottom: 8px; left: 8px; }
+        .toggle-track .cloud:nth-child(5) { bottom: 14px; left: 14px; width: 8px; }
+
+        .toggle-switch input:checked ~ .toggle-track .cloud {
+            opacity: 0.7;
+        }
+
+        .toggle-switch:hover .toggle-thumb {
+            transform: scale(1.08);
+        }
+
+        /* ============================================ */
         /*  RESPONSIVE                                  */
         /* ============================================ */
         @media (max-width: 600px) {
@@ -959,6 +1139,13 @@
             .option-item {
                 padding: 10px;
             }
+            .theme-toggle {
+                top: 12px;
+                right: 0;
+            }
+            .theme-toggle-label {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -968,6 +1155,22 @@
 
     <!-- HEADER -->
     <header class="app-header" id="app-header">
+        <!-- THEME TOGGLE -->
+        <div class="theme-toggle" id="theme-toggle">
+            <span class="theme-toggle-label" id="theme-label">Dark</span>
+            <label class="toggle-switch" title="Toggle light/dark theme">
+                <input type="checkbox" id="theme-checkbox">
+                <div class="toggle-track">
+                    <span class="star"></span>
+                    <span class="star"></span>
+                    <span class="star"></span>
+                    <span class="cloud"></span>
+                    <span class="cloud"></span>
+                </div>
+                <div class="toggle-thumb" id="toggle-thumb">🌙</div>
+            </label>
+        </div>
+
         <div class="header-badge"><span class="dot"></span> TGEAPCET 2025</div>
         <h1>Web Options Builder</h1>
         <p>Select your preferred colleges and branches, arrange them by priority, and save your list locally.</p>
@@ -1980,8 +2183,48 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // ============================================
+//  THEME TOGGLE
+// ============================================
+function initTheme() {
+    const checkbox = document.getElementById('theme-checkbox');
+    const label = document.getElementById('theme-label');
+    const thumb = document.getElementById('toggle-thumb');
+
+    // Load saved preference, or detect OS preference
+    const saved = localStorage.getItem('eapcet_theme');
+    let isDark;
+    if (saved) {
+        isDark = saved === 'dark';
+    } else {
+        isDark = !window.matchMedia('(prefers-color-scheme: light)').matches;
+    }
+
+    applyTheme(isDark);
+    checkbox.checked = !isDark; // checked = light
+
+    checkbox.addEventListener('change', () => {
+        const nowLight = checkbox.checked;
+        applyTheme(!nowLight);
+        localStorage.setItem('eapcet_theme', nowLight ? 'light' : 'dark');
+    });
+
+    function applyTheme(dark) {
+        if (dark) {
+            document.documentElement.removeAttribute('data-theme');
+            label.textContent = 'Dark';
+            thumb.textContent = '🌙';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            label.textContent = 'Light';
+            thumb.textContent = '☀️';
+        }
+    }
+}
+
+// ============================================
 //  BOOT
 // ============================================
+initTheme();
 init();
 </script>
 
