@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGEAPCET Web Options Builder</title>
+    <meta name="description" content="Build and manage your TGEAPCET college web options list with an easy-to-use interface. Select colleges, branches, reorder priorities, and save locally.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================ */
+        /*  DESIGN SYSTEM & CSS VARIABLES               */
+        /* ============================================ */
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a1f35;
+            --bg-card-hover: #212845;
+            --bg-input: #151b2e;
+            --bg-glass: rgba(26, 31, 53, 0.85);
+
+            --accent-primary: #6366f1;
+            --accent-primary-light: #818cf8;
+            --accent-primary-dark: #4f46e5;
+            --accent-secondary: #06b6d4;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-accent: #a5b4fc;
+
+            --border-primary: rgba(99, 102, 241, 0.2);
+            --border-secondary: rgba(148, 163, 184, 0.1);
+            --border-glow: rgba(99, 102, 241, 0.4);
+
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.15);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+            --transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* College type colors */
+            --type-pvt: #f59e0b;
+            --type-univ: #06b6d4;
+            --type-sf: #8b5cf6;
+            --type-girls: #ec4899;
+            --type-minority: #10b981;
+        }
+
+        /* ============================================ */
+        /*  BASE RESET & TYPOGRAPHY                     */
+        /* ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ============================================ */
+        /*  SCROLLBAR STYLING                           */
+        /* ============================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary-light);
+        }
+
+        /* ============================================ */
+        /*  LAYOUT                                      */
+        /* ============================================ */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 24px 60px;
+        }
+
+        /* ============================================ */
+        /*  HEADER                                      */
+        /* ============================================ */
+        .app-header {
+            text-align: center;
+            margin-bottom: 36px;
+            padding: 40px 20px 30px;
+            position: relative;
+        }
+
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.1));
+            border: 1px solid var(--border-primary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-primary-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+        }
+
+        .header-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-success);
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .app-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f1f5f9 0%, #a5b4fc 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .app-header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* ============================================ */
+        /*  STATS BAR                                   */
+        /* ============================================ */
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 140px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            text-align: center;
+            transition: var(--transition-normal);
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary-light), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* ============================================ */
+        /*  MAIN TWO-COLUMN LAYOUT                      */
+        /* ============================================ */
+        .main-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================ */
+        /*  PANEL / CARD STYLING                        */
+        /* ============================================ */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .panel-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .panel-header h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-header h2 .icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary-dark));
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+        }
+
+        .panel-body {
+            padding: 20px 24px 24px;
+        }
+
+        /* ============================================ */
+        /*  FORM ELEMENTS                               */
+        /* ============================================ */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 7px;
+        }
+
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-select select {
+            width: 100%;
+            padding: 12px 40px 12px 14px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: var(--transition-fast);
+            outline: none;
+        }
+
+        .custom-select select:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .custom-select select:hover {
+            border-color: var(--border-glow);
+        }
+
+        .custom-select::after {
+            content: '▾';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .custom-select select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 8px;
+        }
+
+        /* ============================================ */
+        /*  BUTTONS                                     */
+        /* ============================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            outline: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary-dark));
+            color: white;
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-success), #059669);
+            color: white;
+            box-shadow: 0 2px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-danger), #dc2626);
+            color: white;
+            box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: var(--border-primary);
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 0.78rem;
+        }
+
+        .btn-icon {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .add-btn-wrap {
+            margin-top: 20px;
+        }
+
+        /* ============================================ */
+        /*  TYPE BADGES                                 */
+        /* ============================================ */
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .type-badge.pvt { background: rgba(245, 158, 11, 0.15); color: var(--type-pvt); border: 1px solid rgba(245, 158, 11, 0.25); }
+        .type-badge.univ { background: rgba(6, 182, 212, 0.15); color: var(--type-univ); border: 1px solid rgba(6, 182, 212, 0.25); }
+        .type-badge.sf { background: rgba(139, 92, 246, 0.15); color: var(--type-sf); border: 1px solid rgba(139, 92, 246, 0.25); }
+        .type-badge.girls { background: rgba(236, 72, 153, 0.15); color: var(--type-girls); border: 1px solid rgba(236, 72, 153, 0.25); }
+        .type-badge.minority { background: rgba(16, 185, 129, 0.15); color: var(--type-minority); border: 1px solid rgba(16, 185, 129, 0.25); }
+
+        /* ============================================ */
+        /*  OPTIONS LIST                                */
+        /* ============================================ */
+        .options-list-panel {
+            position: sticky;
+            top: 20px;
+        }
+
+        .list-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 12px 24px;
+            background: rgba(99, 102, 241, 0.04);
+            border-bottom: 1px solid var(--border-secondary);
+        }
+
+        .list-toolbar .toolbar-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .options-list-container {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            margin-bottom: 4px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-sm);
+            transition: var(--transition-normal);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .option-item:hover {
+            border-color: var(--border-primary);
+            background: var(--bg-card-hover);
+        }
+
+        .option-item.selected {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.08);
+            box-shadow: 0 0 0 1px var(--accent-primary);
+        }
+
+        .option-item.moving-up {
+            animation: moveUp 0.3s ease;
+        }
+
+        .option-item.moving-down {
+            animation: moveDown 0.3s ease;
+        }
+
+        @keyframes moveUp {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-8px); background: rgba(16, 185, 129, 0.1); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes moveDown {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(8px); background: rgba(245, 158, 11, 0.1); }
+            100% { transform: translateY(0); }
+        }
+
+        .option-rank {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary-dark));
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .option-details {
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+
+        .option-college-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .option-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 3px;
+            flex-wrap: wrap;
+        }
+
+        .option-meta span {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .option-meta .branch-tag {
+            background: rgba(6, 182, 212, 0.12);
+            color: var(--accent-secondary);
+            padding: 1px 7px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        .option-meta .district-tag {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .option-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .option-actions .btn-icon {
+            width: 28px;
+            height: 28px;
+            font-size: 0.85rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            border-radius: 6px;
+        }
+
+        .option-actions .btn-icon:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-primary);
+        }
+
+        .option-actions .btn-icon.btn-delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        /* ============================================ */
+        /*  EMPTY STATE                                 */
+        /* ============================================ */
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        /* ============================================ */
+        /*  TOAST NOTIFICATIONS                         */
+        /* ============================================ */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            min-width: 300px;
+            max-width: 440px;
+            animation: toastIn 0.35s ease-out;
+            transition: var(--transition-normal);
+        }
+
+        .toast.toast-exit {
+            animation: toastOut 0.3s ease-in forwards;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(60px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0) scale(1); }
+            to { opacity: 0; transform: translateX(60px) scale(0.95); }
+        }
+
+        .toast-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .toast-body {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .toast-msg {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-success); }
+        .toast.warning { border-left: 3px solid var(--accent-warning); }
+        .toast.error { border-left: 3px solid var(--accent-danger); }
+        .toast.info { border-left: 3px solid var(--accent-primary); }
+
+        /* ============================================ */
+        /*  SAVE STATUS                                 */
+        /* ============================================ */
+        .save-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            border-top: 1px solid var(--border-secondary);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .save-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .save-status .dot-saved {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-success);
+        }
+
+        .save-status .dot-unsaved {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-warning);
+            animation: pulse-dot 1s infinite;
+        }
+
+        /* ============================================ */
+        /*  TYPE LEGEND                                 */
+        /* ============================================ */
+        .type-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-secondary);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 3px;
+        }
+
+        /* ============================================ */
+        /*  KEYBOARD SHORTCUTS HINT                     */
+        /* ============================================ */
+        .shortcuts-hint {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 24px;
+            background: rgba(99, 102, 241, 0.04);
+            border-top: 1px solid var(--border-secondary);
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        kbd {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-secondary);
+            border-radius: 4px;
+            font-family: 'Inter', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            min-width: 22px;
+        }
+
+        /* ============================================ */
+        /*  FILTER BAR IN SELECTOR                      */
+        /* ============================================ */
+        .filter-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--accent-primary-light);
+        }
+
+        .avail-count {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* ============================================ */
+        /*  CONFIRMATION MODAL                          */
+        /* ============================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: var(--transition-smooth);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .modal p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* ============================================ */
+        /*  RESPONSIVE                                  */
+        /* ============================================ */
+        @media (max-width: 600px) {
+            .app-container {
+                padding: 12px 12px 40px;
+            }
+            .app-header h1 {
+                font-size: 1.5rem;
+            }
+            .stats-bar {
+                gap: 8px;
+            }
+            .stat-card {
+                min-width: 100px;
+                padding: 12px;
+            }
+            .stat-card .stat-value {
+                font-size: 1.4rem;
+            }
+            .panel-body {
+                padding: 16px;
+            }
+            .option-item {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- HEADER -->
+    <header class="app-header" id="app-header">
+        <div class="header-badge"><span class="dot"></span> TGEAPCET 2025</div>
+        <h1>Web Options Builder</h1>
+        <p>Select your preferred colleges and branches, arrange them by priority, and save your list locally.</p>
+    </header>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar" id="stats-bar">
+        <div class="stat-card">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Options Added</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-colleges">117</div>
+            <div class="stat-label">Colleges</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-branches">55</div>
+            <div class="stat-label">Branches</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-districts">5</div>
+            <div class="stat-label">Districts</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- LEFT: SELECTOR PANEL -->
+        <div class="panel" id="selector-panel">
+            <div class="panel-header">
+                <h2><span class="icon">➕</span> Add Option</h2>
+            </div>
+            <div class="panel-body">
+                <!-- District -->
+                <div class="form-group">
+                    <label for="select-district">District</label>
+                    <div class="custom-select">
+                        <select id="select-district">
+                            <option value="">— Select District —</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- College -->
+                <div class="form-group">
+                    <label for="select-college">College</label>
+                    <div class="custom-select">
+                        <select id="select-college" disabled>
+                            <option value="">— Select College —</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Branch -->
+                <div class="form-group">
+                    <label for="select-branch">Branch</label>
+                    <div class="custom-select">
+                        <select id="select-branch" disabled>
+                            <option value="">— Select Branch —</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Active filters -->
+                <div class="filter-info" id="filter-info" style="display: none;"></div>
+                <div class="avail-count" id="avail-count"></div>
+
+                <!-- Add Button -->
+                <div class="add-btn-wrap">
+                    <button class="btn btn-primary btn-full" id="btn-add-option" disabled>
+                        ➕ Add to Options List
+                    </button>
+                </div>
+            </div>
+
+            <!-- Type Legend -->
+            <div class="type-legend">
+                <div class="legend-item"><div class="legend-dot" style="background: var(--type-univ);"></div> UNIV</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--type-sf);"></div> SF</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--type-girls);"></div> GIRLS</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--type-minority);"></div> MINORITY</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--type-pvt);"></div> PVT</div>
+            </div>
+        </div>
+
+        <!-- RIGHT: OPTIONS LIST PANEL -->
+        <div class="panel options-list-panel" id="options-list-panel">
+            <div class="panel-header">
+                <h2><span class="icon">📋</span> Your Options List</h2>
+                <span style="font-size:0.78rem; color:var(--text-muted);" id="list-count">0 options</span>
+            </div>
+
+            <div class="list-toolbar">
+                <div class="toolbar-actions">
+                    <button class="btn btn-ghost btn-sm" id="btn-clear-all" title="Clear all options">🗑️ Clear All</button>
+                    <button class="btn btn-ghost btn-sm" id="btn-export-json" title="Export as JSON">📥 Export</button>
+                    <button class="btn btn-ghost btn-sm" id="btn-import-json" title="Import JSON file">📤 Import</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display:none;">
+                </div>
+                <button class="btn btn-success btn-sm" id="btn-save" title="Save to local storage">💾 Save</button>
+            </div>
+
+            <div class="options-list-container" id="options-list-container">
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>No options yet</h3>
+                    <p>Use the selector on the left to add college + branch combinations to your priority list.</p>
+                </div>
+            </div>
+
+            <div class="shortcuts-hint">
+                <div class="shortcut-item"><kbd>↑</kbd> Move Up</div>
+                <div class="shortcut-item"><kbd>↓</kbd> Move Down</div>
+                <div class="shortcut-item"><kbd>Del</kbd> Remove</div>
+                <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>S</kbd> Save</div>
+            </div>
+
+            <div class="save-bar" id="save-bar">
+                <div class="save-status" id="save-status">
+                    <div class="dot-saved"></div>
+                    <span>No changes</span>
+                </div>
+                <span style="font-size:0.72rem; color:var(--text-muted);" id="last-saved">Never saved</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- CLEAR CONFIRMATION MODAL -->
+<div class="modal-overlay" id="modal-clear">
+    <div class="modal">
+        <h3>⚠️ Clear All Options?</h3>
+        <p>This will remove all options from your list. This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+            <button class="btn btn-danger" id="modal-confirm">Clear All</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================
+//  DATA: Colleges, Branches, Districts, Combos
+// ============================================
+const COLLEGE_DATA = {
+    "AARM": { district: "HYD", type: "PVT" },
+    "ACEG": { district: "MDL", type: "PVT" },
+    "AITH": { district: "RR", type: "PVT" },
+    "ANUG": { district: "MDL", type: "PVT" },
+    "ARJN": { district: "RR", type: "PVT" },
+    "ASRA": { district: "RR", type: "PVT" },
+    "AURC": { district: "HYD", type: "PVT" },
+    "AURG": { district: "MDL", type: "PVT" },
+    "AURH": { district: "HNK", type: "PVT" },
+    "AURK": { district: "MDL", type: "PVT" },
+    "AURN": { district: "HYD", type: "PVT" },
+    "AVIH": { district: "RR", type: "PVT" },
+    "AVNI": { district: "RR", type: "PVT" },
+    "AZAD": { district: "RR", type: "MINORITY" },
+    "BIET": { district: "RR", type: "PVT" },
+    "BITN": { district: "WGL", type: "PVT" },
+    "BREW": { district: "HYD", type: "GIRLS" },
+    "BRIG": { district: "RR", type: "PVT" },
+    "BRIL": { district: "RR", type: "PVT" },
+    "BSKR": { district: "RR", type: "PVT" },
+    "BVRW": { district: "MDL", type: "GIRLS" },
+    "CBIT": { district: "RR", type: "PVT" },
+    "CHET": { district: "RR", type: "PVT" },
+    "CMRG": { district: "MDL", type: "PVT" },
+    "CMRK": { district: "MDL", type: "PVT" },
+    "CMRM": { district: "MDL", type: "PVT" },
+    "CMRN": { district: "MDL", type: "PVT" },
+    "CVRH": { district: "RR", type: "PVT" },
+    "DCET": { district: "HYD", type: "MINORITY" },
+    "DRKI": { district: "MDL", type: "PVT" },
+    "GCTC": { district: "MDL", type: "PVT" },
+    "GLOB": { district: "RR", type: "PVT" },
+    "GLWC": { district: "MDL", type: "PVT" },
+    "GNIT": { district: "RR", type: "PVT" },
+    "GNTW": { district: "HYD", type: "GIRLS" },
+    "GRRR": { district: "MDL", type: "PVT" },
+    "GURU": { district: "RR", type: "PVT" },
+    "HITM": { district: "MDL", type: "PVT" },
+    "HOLY": { district: "MDL", type: "PVT" },
+    "IARE": { district: "MDL", type: "PVT" },
+    "INDI": { district: "RR", type: "PVT" },
+    "INDU": { district: "RR", type: "PVT" },
+    "ISLC": { district: "HYD", type: "MINORITY" },
+    "JAYA": { district: "WGL", type: "PVT" },
+    "JBIT": { district: "RR", type: "PVT" },
+    "JNTH": { district: "MDL", type: "UNIV" },
+    "JOGI": { district: "RR", type: "PVT" },
+    "JPNH": { district: "HYD", type: "MINORITY" },
+    "KGRH": { district: "RR", type: "PVT" },
+    "KITS": { district: "HNK", type: "PVT" },
+    "KMCE": { district: "RR", type: "PVT" },
+    "KMEC": { district: "MDL", type: "PVT" },
+    "KMIT": { district: "HYD", type: "PVT" },
+    "KNRR": { district: "RR", type: "PVT" },
+    "KPRC": { district: "MDL", type: "PVT" },
+    "KPRT": { district: "MDL", type: "PVT" },
+    "KUEWSF": { district: "HNK", type: "SF" },
+    "KUWL": { district: "HNK", type: "UNIV" },
+    "LRDS": { district: "RR", type: "MINORITY" },
+    "METH": { district: "HYD", type: "PVT" },
+    "MGHA": { district: "MDL", type: "GIRLS" },
+    "MGIT": { district: "RR", type: "PVT" },
+    "MHVR": { district: "HYD", type: "PVT" },
+    "MJCT": { district: "HYD", type: "MINORITY" },
+    "MLID": { district: "MDL", type: "PVT" },
+    "MLRD": { district: "MDL", type: "PVT" },
+    "MLRS": { district: "MDL", type: "PVT" },
+    "MMTZ": { district: "HYD", type: "MINORITY" },
+    "MRCE": { district: "MDL", type: "PVT" },
+    "MRCW": { district: "MDL", type: "GIRLS" },
+    "MREM": { district: "MDL", type: "PVT" },
+    "MRTN": { district: "MDL", type: "PVT" },
+    "MVSR": { district: "RR", type: "PVT" },
+    "NAWB": { district: "HYD", type: "MINORITY" },
+    "NGIT": { district: "MDL", type: "PVT" },
+    "NNRG": { district: "MDL", type: "PVT" },
+    "NRCM": { district: "MDL", type: "PVT" },
+    "NREC": { district: "MDL", type: "PVT" },
+    "OUCE": { district: "HYD", type: "UNIV" },
+    "PALV": { district: "RR", type: "PVT" },
+    "PETW": { district: "MDL", type: "GIRLS" },
+    "RITW": { district: "MDL", type: "GIRLS" },
+    "SCET": { district: "RR", type: "MINORITY" },
+    "SDES": { district: "RR", type: "PVT" },
+    "SDEW": { district: "RR", type: "GIRLS" },
+    "SDGI": { district: "RR", type: "PVT" },
+    "SIEI": { district: "RR", type: "PVT" },
+    "SISG": { district: "MDL", type: "PVT" },
+    "SMSK": { district: "MDL", type: "PVT" },
+    "SNIS": { district: "MDL", type: "PVT" },
+    "SNTI": { district: "RR", type: "PVT" },
+    "SPEC": { district: "MDL", type: "PVT" },
+    "SPHN": { district: "RR", type: "PVT" },
+    "SRHP": { district: "HNK", type: "PVT" },
+    "SRIW": { district: "HNK", type: "GIRLS" },
+    "SRYS": { district: "MDL", type: "PVT" },
+    "STLW": { district: "HYD", type: "GIRLS" },
+    "SVIT": { district: "HYD", type: "PVT" },
+    "SVSE": { district: "HNK", type: "PVT" },
+    "SWET": { district: "HYD", type: "GIRLS" },
+    "TKEM": { district: "RR", type: "PVT" },
+    "TKRC": { district: "RR", type: "PVT" },
+    "TPCE": { district: "HNK", type: "PVT" },
+    "TRRM": { district: "RR", type: "PVT" },
+    "VAGE": { district: "WGL", type: "PVT" },
+    "VASV": { district: "HYD", type: "PVT" },
+    "VBIT": { district: "MDL", type: "PVT" },
+    "VCET": { district: "RR", type: "PVT" },
+    "VGWL": { district: "WGL", type: "PVT" },
+    "VJEC": { district: "MDL", type: "PVT" },
+    "VJIT": { district: "RR", type: "PVT" },
+    "VMEG": { district: "RR", type: "PVT" },
+    "VMRH": { district: "HNK", type: "PVT" },
+    "VMTW": { district: "MDL", type: "GIRLS" },
+    "VRKW": { district: "RR", type: "GIRLS" },
+    "WESL": { district: "HYD", type: "MINORITY" },
+    "WITS": { district: "HNK", type: "PVT" }
+};
+
+// Valid combinations (college -> [branches])
+const VALID_COMBOS = {
+    "AARM": ["CSE","CSM","ECE","EEE","MEC"],
+    "ACEG": ["CIV","CSD","CSE","CSM","CSO","ECE","EEE","INF","MEC"],
+    "AITH": ["CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "ANUG": ["AI","CIV","CSE","ECE","EEE","INF","MEC"],
+    "ARJN": ["CSE","CSM","ECE"],
+    "ASRA": ["CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "AURC": ["AIM","CIV"],
+    "AURG": ["AIM","CSE","ECE","MEC"],
+    "AURH": ["CSD"],
+    "AURK": ["AIM"],
+    "AURN": ["AIM"],
+    "AVIH": ["CSC","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "AVNI": ["AID","CIV","CSC","CSD","CSE","CSM","ECE","MEC"],
+    "AZAD": ["AID","CSE"],
+    "BIET": ["CIV","CSC","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "BITN": ["CIV","CSD","CSE","CSM","CSW","ECE","EEE","MEC"],
+    "BREW": ["CSE","CSM","ECE","EEE","INF"],
+    "BRIG": ["AID","CIV","CSB","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "BRIL": ["AID","CIV","CSC","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "BSKR": ["AID","CSE","CSM","ECE","INF"],
+    "BVRW": ["CSE","CSM","ECE","EEE"],
+    "CBIT": ["AID","BIO","CHE","CIC","CIV","CSE","CSM","ECE","EEE","EVL","INF","MEC"],
+    "CHET": ["CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "CMRG": ["CSD","CSE","CSM","ECE"],
+    "CMRK": ["CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "CMRM": ["CSD","CSE","CSM","ECE"],
+    "CMRN": ["CSD","CSE","CSM","ECE"],
+    "CVRH": ["CIV","CSB","CSC","CSD","CSE","CSM","ECE","EEE","EIE","EVL","INF","MEC"],
+    "DCET": ["CIV","CME","CSE","ECE","EEE","ETE","INF","MEC"],
+    "DRKI": ["CSC","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "GCTC": ["CIV","CSC","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "GLOB": ["CIV","CSD","CSE","CSM","ECE","MEC"],
+    "GLWC": ["CSE","CSM"],
+    "GNIT": ["CIV","CSC","CSE","CSM","ECE","EEE","INF","MEC"],
+    "GNTW": ["CSD","CSE","CSM","ECE","EEE","ETM","INF"],
+    "GRRR": ["CIV","CSB","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "GURU": ["CIV","CSC","CSD","CSE","CSM","CSO","ECE","EEE","EVL","INF","MEC"],
+    "HITM": ["CSD","CSE","CSM","ECE","EEE","MEC"],
+    "HOLY": ["CIV","CSD","CSE","CSM","CSO","ECE","EEE","MEC"],
+    "IARE": ["ANE","CIV","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "INDI": ["AID","CIV","CSC","CSD","CSE","CSM","CSO","ECE"],
+    "INDU": ["AID","CIV","CSC","CSD","CSE","CSI","CSM","ECE","EEE","INF","MEC"],
+    "ISLC": ["AID","CIV","CSE","ECE","INF"],
+    "JAYA": ["CIV","CSD","CSE","CSI","CSM","ECE","EEE","MEC"],
+    "JBIT": ["AID","AIM","CIV","CSD","CSE","CSM","ECE","ECM","EEE","INF","MEC"],
+    "JNTH": ["BIO","CHE","CIV","CSC","CSE","CSM","ECE","EEE","GEO","MEC","MET"],
+    "JOGI": ["CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "JPNH": ["AIM","CSD","CSE","CSM"],
+    "KGRH": ["CIV","CSD","CSE","CSM","ECE","MEC"],
+    "KITS": ["CIV","CSD","CSE","CSM","CSN","CSO","ECE","EEE","INF","MEC"],
+    "KMCE": ["CSE","CSM","ECE"],
+    "KMEC": ["CSE","CSM"],
+    "KMIT": ["CSE","CSM"],
+    "KNRR": ["CIV","CSC","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "KPRC": ["CSE","CSM"],
+    "KPRT": ["CIV","CSE","CSM","ECE"],
+    "KUEWSF": ["CSD","CSE","CSM","ECE","EEE","INF"],
+    "KUWL": ["CIV","CSD","CSE","ECE","EEE","INF","MEC"],
+    "LRDS": ["AIM","CIV","CSD","CSE","CSM","ECE","INF","MEC"],
+    "METH": ["CIV","CSA","CSE","CSM","ECE","EEE","MEC"],
+    "MGHA": ["AID","AIM","CIV","CSE","CSI","ECE","EEE"],
+    "MGIT": ["CIV","CSB","CSD","CSE","CSM","ECE","EEE","INF","MCT","MEC","MME"],
+    "MHVR": ["ANE","CIV","CSE","CSM","ECE","EEE","INF","MEC"],
+    "MJCT": ["CIV","CSA","CSD","CSE","CSM","ECE","MEC"],
+    "MLID": ["ANE","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "MLRD": ["ANE","CIV","CSC","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "MLRS": ["CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "MMTZ": ["CIC","CIV","CSE","CSM"],
+    "MRCE": ["CSD","CSE","CSM","ECE"],
+    "MRCW": ["CSC","CSD","CSE","CSM","ECE","EEE","INF"],
+    "MREM": ["CIV","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "MRTN": ["CSE","CSM","ECE","EEE"],
+    "MVSR": ["AIM","CIC","CIV","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "NAWB": ["CIC","CIV","CSD","CSE","CSM","INF","MEC"],
+    "NGIT": ["CSE","CSM"],
+    "NNRG": ["CIV","CSD","CSE","CSM","ECE"],
+    "NRCM": ["CIV","CSC","CSE","CSM","ECE","EEE","INF","MEC"],
+    "NREC": ["CIV","CSE","CSM","ECE","EEE","MEC"],
+    "OUCE": ["AIM","BME","CIV","CSE","ECE","EEE","MEC","MIN"],
+    "PALV": ["CIV","CSC","CSD","CSE","CSM","ECE","EEE"],
+    "PETW": ["CIV","CSD","CSE","CSM","ECE"],
+    "RITW": ["CSE","ECE","INF"],
+    "SCET": ["AID","AIM","CIV","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "SDES": ["CIV","CSD","CSE","CSI","CSM","ECE","EEE","MEC"],
+    "SDEW": ["CSD","CSE","CSM","ECE","INF"],
+    "SDGI": ["CSD","CSE","CSM","ECE","EEE"],
+    "SIEI": ["CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "SISG": ["CIV","CSC","CSD","CSE","CSM","CSO","CSW","ECE","EEE","MEC"],
+    "SMSK": ["CSD","CSE","CSI","CSM","ECE","EEE"],
+    "SNIS": ["CIV","CSC","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "SNTI": ["AIM","CSE","CSM","ECE","EEE"],
+    "SPEC": ["CIV","CSC","CSD","CSE","CSM","ECE","EEE"],
+    "SPHN": ["CIV","CSC","CSD","CSE","CSM","ECE"],
+    "SRHP": ["CIV","CSE","ECE","EEE","MEC"],
+    "SRIW": ["CSC","CSD","CSE","CSM","ECE"],
+    "SRYS": ["CSE","CSM","ECE","MEC"],
+    "STLW": ["AID","CME","CSE","CSM","ECE","EEE","INF"],
+    "SVIT": ["AID","CSC","CSD","CSE","CSM","CSO"],
+    "SVSE": ["CSD","CSE","CSM","ECE","EEE"],
+    "SWET": ["AID","CSD","CSE","CSM","ECE","INF"],
+    "TKEM": ["CSD","CSE","CSM","ECE","EEE","INF"],
+    "TKRC": ["CIV","CSD","CSE","CSM","ECE","EEE","INF"],
+    "TPCE": ["CSE","CSM"],
+    "TRRM": ["CSE","INF"],
+    "VAGE": ["CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "VASV": ["CIV","CSE","CSM","ECE","EEE","INF","MEC"],
+    "VBIT": ["CIV","CSB","CSC","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "VCET": ["AIM","CIV","CSD","CSE","CSM","ECE","EEE","MEC"],
+    "VGWL": ["CSD","CSE","CSM","ECE"],
+    "VJEC": ["AID","AUT","BIO","CIV","CSB","CSC","CSD","CSE","CSM","CSO","ECE","EEE","EIE","EVL","INF","MEC","RAI"],
+    "VJIT": ["CIV","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "VMEG": ["CIV","CSD","CSE","CSM","ECE","EEE","INF","MEC"],
+    "VMRH": ["CSE","ECE"],
+    "VMTW": ["CSD","CSE","CSM","ECE","INF"],
+    "VRKW": ["AID","CSD","CSE","CSM","ECE","EEE"],
+    "WESL": ["CSE"],
+    "WITS": ["CIV","CSE","ECE"]
+};
+
+const BRANCH_NAMES = {
+    "AI": "Artificial Intelligence",
+    "AID": "AI & Data Science",
+    "AIM": "AI & Machine Learning",
+    "ANE": "Aeronautical Engineering",
+    "AUT": "Automobile Engineering",
+    "BIO": "Biotechnology",
+    "BME": "Bio-Medical Engineering",
+    "BSE": "Bio Science Engineering",
+    "CHE": "Chemical Engineering",
+    "CIC": "Computer & Communication Engg",
+    "CIV": "Civil Engineering",
+    "CME": "Computer Engineering",
+    "CS": "Computer Science",
+    "CSA": "CSE (AI)",
+    "CSB": "CSE (Blockchain Technology)",
+    "CSC": "CSE (Cyber Security)",
+    "CSD": "CSE (Data Science)",
+    "CSE": "Computer Science & Engineering",
+    "CSG": "CSE (Gaming Technology)",
+    "CSI": "CSE (IoT)",
+    "CSM": "CSE (AI & ML)",
+    "CSN": "CSE (Networks)",
+    "CSO": "CSE (IoT & Cyber Security)",
+    "CST": "CSE (Twin)",
+    "CSW": "CSE (Software Engineering)",
+    "DRG": "Drug Technology",
+    "DS": "Data Science",
+    "DTD": "Dyeing Technology",
+    "ECA": "ECE (ACT)",
+    "ECE": "Electronics & Communication Engg",
+    "ECI": "ECE (IoT)",
+    "ECM": "ECE (VLSI Design Technology)",
+    "EEE": "Electrical & Electronics Engg",
+    "EIE": "Electronics & Instrumentation",
+    "ETE": "Electronics & Telematics",
+    "ETM": "ETM",
+    "EVL": "ECE (VLSI)",
+    "FDT": "Food Technology",
+    "GEO": "Geo Informatics",
+    "INF": "Information Technology",
+    "IPE": "Industrial Production Engg",
+    "ITE": "IT (Twin)",
+    "MCT": "Mechatronics",
+    "MEC": "Mechanical Engineering",
+    "MET": "Metallurgical Engineering",
+    "MIN": "Mining Engineering",
+    "MME": "Mining & Mineral Engg",
+    "MMS": "Mineral & Metallurgical Engg",
+    "MTE": "Materials Science & Technology",
+    "PHE": "Pharmaceutical Engineering",
+    "PLG": "Plastics Technology",
+    "RAI": "Robotics & AI",
+    "TEX": "Textile Technology"
+};
+
+const DISTRICT_NAMES = {
+    "HNK": "Hanumakonda",
+    "HYD": "Hyderabad",
+    "MDL": "Medchal-Malkajgiri",
+    "RR": "Ranga Reddy",
+    "WGL": "Warangal"
+};
+
+// ============================================
+//  APPLICATION STATE
+// ============================================
+let optionsList = [];
+let selectedIndex = -1;
+let hasUnsavedChanges = false;
+
+// ============================================
+//  DOM REFERENCES
+// ============================================
+const districtSelect = document.getElementById('select-district');
+const collegeSelect = document.getElementById('select-college');
+const branchSelect = document.getElementById('select-branch');
+const addBtn = document.getElementById('btn-add-option');
+const listContainer = document.getElementById('options-list-container');
+const emptyState = document.getElementById('empty-state');
+const listCount = document.getElementById('list-count');
+const statTotal = document.getElementById('stat-total');
+const filterInfo = document.getElementById('filter-info');
+const availCount = document.getElementById('avail-count');
+const saveStatus = document.getElementById('save-status');
+const lastSaved = document.getElementById('last-saved');
+
+// ============================================
+//  INITIALIZE
+// ============================================
+function init() {
+    populateDistricts();
+    loadFromStorage();
+    setupEventListeners();
+    updateStats();
+    updateSaveStatus();
+}
+
+function populateDistricts() {
+    const districts = Object.keys(DISTRICT_NAMES).sort();
+    districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = `${d} — ${DISTRICT_NAMES[d]}`;
+        districtSelect.appendChild(opt);
+    });
+}
+
+// ============================================
+//  EVENT LISTENERS
+// ============================================
+function setupEventListeners() {
+    districtSelect.addEventListener('change', onDistrictChange);
+    collegeSelect.addEventListener('change', onCollegeChange);
+    branchSelect.addEventListener('change', onBranchChange);
+    addBtn.addEventListener('click', addOption);
+
+    document.getElementById('btn-save').addEventListener('click', saveToStorage);
+    document.getElementById('btn-clear-all').addEventListener('click', () => {
+        if (optionsList.length === 0) return;
+        document.getElementById('modal-clear').classList.add('active');
+    });
+    document.getElementById('modal-cancel').addEventListener('click', () => {
+        document.getElementById('modal-clear').classList.remove('active');
+    });
+    document.getElementById('modal-confirm').addEventListener('click', () => {
+        document.getElementById('modal-clear').classList.remove('active');
+        clearAll();
+    });
+    document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+    document.getElementById('btn-import-json').addEventListener('click', () => {
+        document.getElementById('import-file-input').click();
+    });
+    document.getElementById('import-file-input').addEventListener('change', importJSON);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveToStorage();
+            return;
+        }
+        if (selectedIndex < 0) return;
+        switch (e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                moveOption(selectedIndex, -1);
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                moveOption(selectedIndex, 1);
+                break;
+            case 'Delete':
+                e.preventDefault();
+                removeOption(selectedIndex);
+                break;
+        }
+    });
+}
+
+// ============================================
+//  CASCADING DROPDOWNS
+// ============================================
+function onDistrictChange() {
+    const district = districtSelect.value;
+    collegeSelect.innerHTML = '<option value="">— Select College —</option>';
+    branchSelect.innerHTML = '<option value="">— Select Branch —</option>';
+    branchSelect.disabled = true;
+    addBtn.disabled = true;
+
+    if (!district) {
+        collegeSelect.disabled = true;
+        filterInfo.style.display = 'none';
+        availCount.textContent = '';
+        return;
+    }
+
+    // Get colleges in this district
+    const colleges = Object.entries(COLLEGE_DATA)
+        .filter(([_, data]) => data.district === district)
+        .sort((a, b) => a[0].localeCompare(b[0]));
+
+    colleges.forEach(([code, data]) => {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = `${code} — [${data.type}]`;
+        collegeSelect.appendChild(opt);
+    });
+
+    collegeSelect.disabled = false;
+    updateFilterInfo();
+}
+
+function onCollegeChange() {
+    const college = collegeSelect.value;
+    branchSelect.innerHTML = '<option value="">— Select Branch —</option>';
+    addBtn.disabled = true;
+
+    if (!college) {
+        branchSelect.disabled = true;
+        updateFilterInfo();
+        return;
+    }
+
+    // Get available branches for this college
+    const branches = VALID_COMBOS[college] || [];
+    branches.forEach(br => {
+        const opt = document.createElement('option');
+        opt.value = br;
+        opt.textContent = `${br} — ${BRANCH_NAMES[br] || br}`;
+        branchSelect.appendChild(opt);
+    });
+
+    branchSelect.disabled = false;
+    updateFilterInfo();
+}
+
+function onBranchChange() {
+    addBtn.disabled = !branchSelect.value;
+    updateFilterInfo();
+}
+
+function updateFilterInfo() {
+    const district = districtSelect.value;
+    const college = collegeSelect.value;
+    const branch = branchSelect.value;
+
+    if (!district) {
+        filterInfo.style.display = 'none';
+        availCount.textContent = '';
+        return;
+    }
+
+    filterInfo.style.display = 'flex';
+    filterInfo.innerHTML = '';
+
+    if (district) {
+        filterInfo.innerHTML += `<span class="filter-chip">📍 ${DISTRICT_NAMES[district]}</span>`;
+    }
+    if (college) {
+        const type = COLLEGE_DATA[college]?.type || '';
+        filterInfo.innerHTML += `<span class="filter-chip">🏫 ${college} <span class="type-badge ${type.toLowerCase()}" style="margin-left:4px;font-size:0.6rem;">${type}</span></span>`;
+    }
+    if (branch) {
+        filterInfo.innerHTML += `<span class="filter-chip">📚 ${branch}</span>`;
+    }
+
+    // Show available count
+    if (college && !branch) {
+        const count = (VALID_COMBOS[college] || []).length;
+        availCount.textContent = `${count} branches available`;
+    } else if (district && !college) {
+        const count = Object.entries(COLLEGE_DATA).filter(([_, d]) => d.district === district).length;
+        availCount.textContent = `${count} colleges in ${DISTRICT_NAMES[district]}`;
+    } else {
+        availCount.textContent = '';
+    }
+}
+
+// ============================================
+//  ADD OPTION
+// ============================================
+function addOption() {
+    const district = districtSelect.value;
+    const college = collegeSelect.value;
+    const branch = branchSelect.value;
+
+    if (!district || !college || !branch) {
+        showToast('warning', 'Incomplete Selection', 'Please select district, college, and branch.');
+        return;
+    }
+
+    // Check for duplicates
+    const key = `${college}+${branch}`;
+    const existingIdx = optionsList.findIndex(o => o.college === college && o.branch === branch);
+    if (existingIdx >= 0) {
+        showToast('error', 'Duplicate Option!',
+            `${college} — ${BRANCH_NAMES[branch] || branch} is already at position #${existingIdx + 1}.`);
+        // Highlight the existing one
+        highlightItem(existingIdx);
+        return;
+    }
+
+    const option = {
+        id: key + '_' + Date.now(),
+        college,
+        branch,
+        district,
+        type: COLLEGE_DATA[college]?.type || 'PVT'
+    };
+
+    optionsList.push(option);
+    hasUnsavedChanges = true;
+    renderList();
+    updateStats();
+    updateSaveStatus();
+
+    showToast('success', 'Option Added!',
+        `#${optionsList.length}: ${college} — ${BRANCH_NAMES[branch] || branch}`);
+
+    // Reset branch selector for quick next add
+    branchSelect.value = '';
+    addBtn.disabled = true;
+}
+
+// ============================================
+//  RENDER OPTIONS LIST
+// ============================================
+function renderList() {
+    if (optionsList.length === 0) {
+        listContainer.innerHTML = '';
+        listContainer.appendChild(emptyState);
+        emptyState.style.display = 'block';
+        listCount.textContent = '0 options';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    listContainer.innerHTML = '';
+
+    optionsList.forEach((option, index) => {
+        const item = document.createElement('div');
+        item.className = 'option-item' + (index === selectedIndex ? ' selected' : '');
+        item.dataset.index = index;
+
+        item.innerHTML = `
+            <div class="option-rank">${index + 1}</div>
+            <div class="option-details" title="Click to select, then use ↑↓ to reorder">
+                <div class="option-college-name">${option.college} — ${BRANCH_NAMES[option.branch] || option.branch}</div>
+                <div class="option-meta">
+                    <span class="branch-tag">${option.branch}</span>
+                    <span class="district-tag">📍 ${DISTRICT_NAMES[option.district] || option.district}</span>
+                    <span class="type-badge ${option.type.toLowerCase()}">${option.type}</span>
+                </div>
+            </div>
+            <div class="option-actions">
+                <button class="btn btn-icon btn-move-up" title="Move Up" ${index === 0 ? 'disabled style="opacity:0.3"' : ''}>▲</button>
+                <button class="btn btn-icon btn-move-down" title="Move Down" ${index === optionsList.length - 1 ? 'disabled style="opacity:0.3"' : ''}>▼</button>
+                <button class="btn btn-icon btn-delete" title="Remove">✕</button>
+            </div>
+        `;
+
+        // Click to select
+        item.querySelector('.option-details').addEventListener('click', () => {
+            selectedIndex = index;
+            renderList();
+        });
+
+        // Move up
+        item.querySelector('.btn-move-up').addEventListener('click', (e) => {
+            e.stopPropagation();
+            moveOption(index, -1);
+        });
+
+        // Move down
+        item.querySelector('.btn-move-down').addEventListener('click', (e) => {
+            e.stopPropagation();
+            moveOption(index, 1);
+        });
+
+        // Delete
+        item.querySelector('.btn-delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeOption(index);
+        });
+
+        listContainer.appendChild(item);
+    });
+
+    listCount.textContent = `${optionsList.length} option${optionsList.length !== 1 ? 's' : ''}`;
+}
+
+// ============================================
+//  MOVE OPTION UP/DOWN
+// ============================================
+function moveOption(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= optionsList.length) return;
+
+    // Swap
+    [optionsList[index], optionsList[newIndex]] = [optionsList[newIndex], optionsList[index]];
+    selectedIndex = newIndex;
+    hasUnsavedChanges = true;
+
+    renderList();
+    updateSaveStatus();
+
+    // Animate
+    const items = listContainer.querySelectorAll('.option-item');
+    if (items[newIndex]) {
+        items[newIndex].classList.add(direction === -1 ? 'moving-up' : 'moving-down');
+        setTimeout(() => items[newIndex].classList.remove('moving-up', 'moving-down'), 300);
+    }
+
+    // Scroll into view
+    if (items[newIndex]) {
+        items[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// ============================================
+//  REMOVE OPTION
+// ============================================
+function removeOption(index) {
+    const removed = optionsList.splice(index, 1)[0];
+    if (selectedIndex >= optionsList.length) selectedIndex = optionsList.length - 1;
+    if (selectedIndex === index) selectedIndex = -1;
+    else if (selectedIndex > index) selectedIndex--;
+
+    hasUnsavedChanges = true;
+    renderList();
+    updateStats();
+    updateSaveStatus();
+
+    showToast('info', 'Option Removed',
+        `${removed.college} — ${BRANCH_NAMES[removed.branch] || removed.branch}`);
+}
+
+// ============================================
+//  HIGHLIGHT DUPLICATE
+// ============================================
+function highlightItem(index) {
+    const items = listContainer.querySelectorAll('.option-item');
+    if (items[index]) {
+        items[index].style.boxShadow = '0 0 0 2px var(--accent-danger), 0 0 20px rgba(239, 68, 68, 0.3)';
+        items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+            items[index].style.boxShadow = '';
+        }, 2000);
+    }
+}
+
+// ============================================
+//  CLEAR ALL
+// ============================================
+function clearAll() {
+    optionsList = [];
+    selectedIndex = -1;
+    hasUnsavedChanges = true;
+    renderList();
+    updateStats();
+    updateSaveStatus();
+    showToast('info', 'List Cleared', 'All options have been removed.');
+}
+
+// ============================================
+//  UPDATE STATS
+// ============================================
+function updateStats() {
+    statTotal.textContent = optionsList.length;
+}
+
+// ============================================
+//  LOCAL STORAGE
+// ============================================
+function saveToStorage() {
+    try {
+        localStorage.setItem('eapcet_options_list', JSON.stringify(optionsList));
+        localStorage.setItem('eapcet_last_saved', new Date().toISOString());
+        hasUnsavedChanges = false;
+        updateSaveStatus();
+        showToast('success', 'Saved!', `${optionsList.length} options saved to local storage.`);
+    } catch (e) {
+        showToast('error', 'Save Failed', 'Could not save to local storage. ' + e.message);
+    }
+}
+
+function loadFromStorage() {
+    try {
+        const data = localStorage.getItem('eapcet_options_list');
+        if (data) {
+            optionsList = JSON.parse(data);
+            renderList();
+            updateStats();
+            showToast('info', 'Loaded', `${optionsList.length} options restored from local storage.`);
+        } else {
+            renderList();
+        }
+    } catch (e) {
+        renderList();
+    }
+}
+
+function updateSaveStatus() {
+    const savedTime = localStorage.getItem('eapcet_last_saved');
+
+    if (hasUnsavedChanges) {
+        saveStatus.innerHTML = '<div class="dot-unsaved"></div><span>Unsaved changes</span>';
+    } else {
+        saveStatus.innerHTML = '<div class="dot-saved"></div><span>All saved</span>';
+    }
+
+    if (savedTime) {
+        const d = new Date(savedTime);
+        lastSaved.textContent = `Last saved: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+    } else {
+        lastSaved.textContent = 'Never saved';
+    }
+}
+
+// ============================================
+//  EXPORT / IMPORT
+// ============================================
+function exportJSON() {
+    if (optionsList.length === 0) {
+        showToast('warning', 'Nothing to Export', 'Add some options first.');
+        return;
+    }
+
+    const exportData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        optionsCount: optionsList.length,
+        options: optionsList.map((o, i) => ({
+            priority: i + 1,
+            college: o.college,
+            branch: o.branch,
+            branchName: BRANCH_NAMES[o.branch] || o.branch,
+            district: o.district,
+            districtName: DISTRICT_NAMES[o.district] || o.district,
+            type: o.type
+        }))
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `eapcet_options_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showToast('success', 'Exported!', `${optionsList.length} options exported as JSON.`);
+}
+
+function importJSON(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+            if (!data.options || !Array.isArray(data.options)) {
+                throw new Error('Invalid format');
+            }
+
+            // Validate and import
+            let imported = 0;
+            let duplicates = 0;
+            data.options.forEach(o => {
+                const exists = optionsList.some(existing =>
+                    existing.college === o.college && existing.branch === o.branch);
+                if (exists) {
+                    duplicates++;
+                    return;
+                }
+                if (!COLLEGE_DATA[o.college] || !VALID_COMBOS[o.college]?.includes(o.branch)) {
+                    return; // skip invalid
+                }
+                optionsList.push({
+                    id: `${o.college}+${o.branch}_${Date.now()}_${Math.random()}`,
+                    college: o.college,
+                    branch: o.branch,
+                    district: o.district || COLLEGE_DATA[o.college].district,
+                    type: o.type || COLLEGE_DATA[o.college].type
+                });
+                imported++;
+            });
+
+            hasUnsavedChanges = true;
+            renderList();
+            updateStats();
+            updateSaveStatus();
+
+            let msg = `${imported} options imported.`;
+            if (duplicates > 0) msg += ` ${duplicates} duplicates skipped.`;
+            showToast('success', 'Import Complete', msg);
+        } catch (err) {
+            showToast('error', 'Import Failed', 'Invalid JSON file. ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset
+}
+
+// ============================================
+//  TOAST NOTIFICATIONS
+// ============================================
+function showToast(type, title, message) {
+    const container = document.getElementById('toast-container');
+    const icons = { success: '✅', warning: '⚠️', error: '❌', info: 'ℹ️' };
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+        <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            <div class="toast-msg">${message}</div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+// ============================================
+//  AUTO-SAVE warning on page leave
+// ============================================
+window.addEventListener('beforeunload', (e) => {
+    if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// ============================================
+//  BOOT
+// ============================================
+init();
+</script>
+
+</body>
+</html>
