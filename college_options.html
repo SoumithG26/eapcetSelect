@@ -609,6 +609,35 @@
             box-shadow: 0 0 0 1px var(--accent-primary);
         }
 
+        /* Mark for Review indicator */
+        .option-item.marked-review {
+            border-left: 3px solid #fb923c;
+        }
+
+        .option-item.marked-review .review-badge {
+            display: inline-flex;
+        }
+
+        .review-badge {
+            display: none;
+            align-items: center;
+            gap: 3px;
+            background: rgba(251, 146, 60, 0.12);
+            color: #fb923c;
+            padding: 1px 7px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: reviewPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes reviewPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
         .option-item.moving-up {
             animation: moveUp 0.3s ease;
         }
@@ -687,25 +716,49 @@
 
         .option-actions {
             display: flex;
-            flex-direction: column;
-            gap: 3px;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
             flex-shrink: 0;
         }
 
         .option-actions .btn-icon {
-            width: 28px;
-            height: 28px;
-            font-size: 0.85rem;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
             background: transparent;
             color: var(--text-muted);
             border: 1px solid transparent;
             border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-normal);
         }
 
         .option-actions .btn-icon:hover {
             background: var(--bg-card);
             color: var(--text-primary);
             border-color: var(--border-primary);
+        }
+
+        .option-actions .btn-icon.btn-bookmark:hover {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-warning);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .option-actions .btn-icon.btn-review:hover {
+            background: rgba(251, 146, 60, 0.1);
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.3);
+        }
+
+        .option-actions .btn-icon.btn-review.active {
+            background: rgba(251, 146, 60, 0.15);
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.4);
         }
 
         .option-actions .btn-icon.btn-delete:hover {
@@ -995,6 +1048,190 @@
         }
 
         /* ============================================ */
+        /*  BOOKMARKS TRAY                              */
+        /* ============================================ */
+        .bookmarks-section {
+            margin-top: 28px;
+        }
+
+        .bookmarks-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .bookmarks-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-secondary);
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition-normal);
+        }
+
+        .bookmarks-header:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .bookmarks-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bookmarks-header .badge-count {
+            background: linear-gradient(135deg, var(--accent-warning), #d97706);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .bookmarks-header .toggle-arrow {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+        }
+
+        .bookmarks-header .toggle-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .bookmarks-body {
+            padding: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            transition: max-height 0.35s ease, padding 0.35s ease;
+        }
+
+        .bookmarks-body.collapsed {
+            max-height: 0;
+            padding: 0 8px;
+            overflow: hidden;
+        }
+
+        .bookmark-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            margin-bottom: 4px;
+            background: var(--bg-input);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-left: 3px solid var(--accent-warning);
+            border-radius: var(--radius-sm);
+            transition: var(--transition-normal);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .bookmark-item:hover {
+            border-color: rgba(245, 158, 11, 0.3);
+            background: var(--bg-card-hover);
+        }
+
+        .bookmark-rank-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .bookmark-rank-info .orig-pos {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-warning), #d97706);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .bookmark-rank-info .pos-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bookmark-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bookmark-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .bookmark-actions .btn-restore {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-warning), #d97706);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            white-space: nowrap;
+        }
+
+        .bookmark-actions .btn-restore:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .bookmark-actions .btn-bookmark-delete {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+
+        .bookmark-actions .btn-bookmark-delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .bookmarks-empty {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .bookmarks-empty .empty-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+            opacity: 0.4;
+        }
+
+        /* ============================================ */
         /*  THEME TOGGLE                                */
         /* ============================================ */
         .theme-toggle {
@@ -1183,16 +1420,16 @@
             <div class="stat-label">Options Added</div>
         </div>
         <div class="stat-card">
+            <div class="stat-value" id="stat-bookmarks">0</div>
+            <div class="stat-label">Bookmarked</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-review">0</div>
+            <div class="stat-label">For Review</div>
+        </div>
+        <div class="stat-card">
             <div class="stat-value" id="stat-colleges">117</div>
             <div class="stat-label">Colleges</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="stat-branches">55</div>
-            <div class="stat-label">Branches</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="stat-districts">5</div>
-            <div class="stat-label">Districts</div>
         </div>
     </div>
 
@@ -1287,6 +1524,8 @@
                 <div class="shortcut-item"><kbd>↓</kbd> Move Down</div>
                 <div class="shortcut-item"><kbd>Del</kbd> Remove</div>
                 <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>S</kbd> Save</div>
+                <div class="shortcut-item">🔖 Bookmark</div>
+                <div class="shortcut-item">⚠ Review</div>
             </div>
 
             <div class="save-bar" id="save-bar">
@@ -1299,19 +1538,30 @@
         </div>
 
     </div>
+
+    <!-- BOOKMARKS TRAY -->
+    <div class="bookmarks-section" id="bookmarks-section" style="display:none;">
+        <div class="bookmarks-panel">
+            <div class="bookmarks-header" id="bookmarks-header">
+                <h2>🔖 Bookmarked Options <span class="badge-count" id="bookmark-count">0</span></h2>
+                <span class="toggle-arrow" id="bookmarks-toggle-arrow">▼</span>
+            </div>
+            <div class="bookmarks-body" id="bookmarks-body"></div>
+        </div>
+    </div>
 </div>
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
 
-<!-- CLEAR CONFIRMATION MODAL -->
-<div class="modal-overlay" id="modal-clear">
+<!-- DYNAMIC CONFIRMATION MODAL -->
+<div class="modal-overlay" id="modal-generic">
     <div class="modal">
-        <h3>⚠️ Clear All Options?</h3>
-        <p>This will remove all options from your list. This action cannot be undone.</p>
+        <h3 id="modal-generic-title">⚠️ Confirm Action</h3>
+        <p id="modal-generic-text">Are you sure you want to proceed?</p>
         <div class="modal-actions">
-            <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
-            <button class="btn btn-danger" id="modal-confirm">Clear All</button>
+            <button class="btn btn-ghost" id="modal-generic-cancel">Cancel</button>
+            <button class="btn btn-danger" id="modal-generic-confirm">Confirm</button>
         </div>
     </div>
 </div>
@@ -1629,8 +1879,10 @@ const DISTRICT_NAMES = {
 //  APPLICATION STATE
 // ============================================
 let optionsList = [];
+let bookmarksList = [];
 let selectedIndex = -1;
 let hasUnsavedChanges = false;
+let confirmCallback = null;
 
 // ============================================
 //  DOM REFERENCES
@@ -1643,10 +1895,15 @@ const listContainer = document.getElementById('options-list-container');
 const emptyState = document.getElementById('empty-state');
 const listCount = document.getElementById('list-count');
 const statTotal = document.getElementById('stat-total');
+const statBookmarks = document.getElementById('stat-bookmarks');
+const statReview = document.getElementById('stat-review');
 const filterInfo = document.getElementById('filter-info');
 const availCount = document.getElementById('avail-count');
 const saveStatus = document.getElementById('save-status');
 const lastSaved = document.getElementById('last-saved');
+const bookmarksSection = document.getElementById('bookmarks-section');
+const bookmarksBody = document.getElementById('bookmarks-body');
+const bookmarkCountBadge = document.getElementById('bookmark-count');
 
 // ============================================
 //  INITIALIZE
@@ -1657,6 +1914,7 @@ function init() {
     setupEventListeners();
     updateStats();
     updateSaveStatus();
+    renderBookmarks();
 }
 
 function populateDistricts() {
@@ -1681,14 +1939,23 @@ function setupEventListeners() {
     document.getElementById('btn-save').addEventListener('click', saveToStorage);
     document.getElementById('btn-clear-all').addEventListener('click', () => {
         if (optionsList.length === 0) return;
-        document.getElementById('modal-clear').classList.add('active');
+        confirmAction(
+            '⚠️ Clear All Options?',
+            'This will remove all options from your list. This action cannot be undone.',
+            'Clear All',
+            () => clearAll()
+        );
     });
-    document.getElementById('modal-cancel').addEventListener('click', () => {
-        document.getElementById('modal-clear').classList.remove('active');
+    document.getElementById('modal-generic-cancel').addEventListener('click', () => {
+        document.getElementById('modal-generic').classList.remove('active');
+        confirmCallback = null;
     });
-    document.getElementById('modal-confirm').addEventListener('click', () => {
-        document.getElementById('modal-clear').classList.remove('active');
-        clearAll();
+    document.getElementById('modal-generic-confirm').addEventListener('click', () => {
+        document.getElementById('modal-generic').classList.remove('active');
+        if (typeof confirmCallback === 'function') {
+            confirmCallback();
+        }
+        confirmCallback = null;
     });
     document.getElementById('btn-export-json').addEventListener('click', exportJSON);
     document.getElementById('btn-import-json').addEventListener('click', () => {
@@ -1696,8 +1963,16 @@ function setupEventListeners() {
     });
     document.getElementById('import-file-input').addEventListener('change', importJSON);
 
+    // Bookmarks toggle
+    document.getElementById('bookmarks-header').addEventListener('click', () => {
+        bookmarksBody.classList.toggle('collapsed');
+        document.getElementById('bookmarks-toggle-arrow').classList.toggle('collapsed');
+    });
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
+        if (document.getElementById('modal-generic').classList.contains('active')) return;
+
         if (e.ctrlKey && e.key === 's') {
             e.preventDefault();
             saveToStorage();
@@ -1715,7 +1990,14 @@ function setupEventListeners() {
                 break;
             case 'Delete':
                 e.preventDefault();
-                removeOption(selectedIndex);
+                const opt = optionsList[selectedIndex];
+                const currentIndex = selectedIndex;
+                confirmAction(
+                    '🗑️ Delete Option?',
+                    `Are you sure you want to remove ${opt.college} — ${BRANCH_NAMES[opt.branch] || opt.branch}?`,
+                    'Delete',
+                    () => removeOption(currentIndex)
+                );
                 break;
         }
     });
@@ -1882,8 +2164,9 @@ function renderList() {
     listContainer.innerHTML = '';
 
     optionsList.forEach((option, index) => {
+        const isReview = !!option.review;
         const item = document.createElement('div');
-        item.className = 'option-item' + (index === selectedIndex ? ' selected' : '');
+        item.className = 'option-item' + (index === selectedIndex ? ' selected' : '') + (isReview ? ' marked-review' : '');
         item.dataset.index = index;
 
         item.innerHTML = `
@@ -1894,11 +2177,14 @@ function renderList() {
                     <span class="branch-tag">${option.branch}</span>
                     <span class="district-tag">📍 ${DISTRICT_NAMES[option.district] || option.district}</span>
                     <span class="type-badge ${option.type.toLowerCase()}">${option.type}</span>
+                    <span class="review-badge">⚠ Review</span>
                 </div>
             </div>
             <div class="option-actions">
                 <button class="btn btn-icon btn-move-up" title="Move Up" ${index === 0 ? 'disabled style="opacity:0.3"' : ''}>▲</button>
                 <button class="btn btn-icon btn-move-down" title="Move Down" ${index === optionsList.length - 1 ? 'disabled style="opacity:0.3"' : ''}>▼</button>
+                <button class="btn btn-icon btn-review${isReview ? ' active' : ''}" title="${isReview ? 'Remove Review Flag' : 'Mark for Review'}">⚠</button>
+                <button class="btn btn-icon btn-bookmark" title="Bookmark & Remove">🔖</button>
                 <button class="btn btn-icon btn-delete" title="Remove">✕</button>
             </div>
         `;
@@ -1921,16 +2207,44 @@ function renderList() {
             moveOption(index, 1);
         });
 
+        // Mark for Review
+        item.querySelector('.btn-review').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleReview(index);
+        });
+
+        // Bookmark
+        item.querySelector('.btn-bookmark').addEventListener('click', (e) => {
+            e.stopPropagation();
+            bookmarkOption(index);
+        });
+
         // Delete
         item.querySelector('.btn-delete').addEventListener('click', (e) => {
             e.stopPropagation();
-            removeOption(index);
+            confirmAction(
+                '🗑️ Delete Option?',
+                `Are you sure you want to remove ${option.college} — ${BRANCH_NAMES[option.branch] || option.branch}?`,
+                'Delete',
+                () => removeOption(index)
+            );
         });
 
         listContainer.appendChild(item);
     });
 
     listCount.textContent = `${optionsList.length} option${optionsList.length !== 1 ? 's' : ''}`;
+}
+
+// ============================================
+//  CONFIRM ACTION MODAL HELPER
+// ============================================
+function confirmAction(title, text, btnLabel, callback) {
+    document.getElementById('modal-generic-title').textContent = title;
+    document.getElementById('modal-generic-text').textContent = text;
+    document.getElementById('modal-generic-confirm').textContent = btnLabel;
+    confirmCallback = callback;
+    document.getElementById('modal-generic').classList.add('active');
 }
 
 // ============================================
@@ -2007,24 +2321,198 @@ function clearAll() {
 }
 
 // ============================================
+//  MARK FOR REVIEW
+// ============================================
+function toggleReview(index) {
+    optionsList[index].review = !optionsList[index].review;
+    hasUnsavedChanges = true;
+    renderList();
+    updateStats();
+    updateSaveStatus();
+
+    const option = optionsList[index];
+    if (option.review) {
+        showToast('warning', 'Marked for Review',
+            `#${index + 1}: ${option.college} — ${BRANCH_NAMES[option.branch] || option.branch}`);
+    } else {
+        showToast('info', 'Review Flag Removed',
+            `#${index + 1}: ${option.college} — ${BRANCH_NAMES[option.branch] || option.branch}`);
+    }
+}
+
+// ============================================
+//  BOOKMARK OPTION
+// ============================================
+function bookmarkOption(index) {
+    const option = optionsList[index];
+    // Check if already bookmarked
+    const alreadyBookmarked = bookmarksList.some(b =>
+        b.college === option.college && b.branch === option.branch);
+    if (alreadyBookmarked) {
+        showToast('warning', 'Already Bookmarked',
+            `${option.college} — ${BRANCH_NAMES[option.branch] || option.branch} is already in bookmarks.`);
+        return;
+    }
+
+    const bookmark = {
+        id: option.id,
+        college: option.college,
+        branch: option.branch,
+        district: option.district,
+        type: option.type,
+        review: option.review || false,
+        originalPosition: index + 1, // 1-based
+        bookmarkedAt: new Date().toISOString()
+    };
+
+    bookmarksList.push(bookmark);
+
+    // Remove from main list
+    optionsList.splice(index, 1);
+    if (selectedIndex >= optionsList.length) selectedIndex = optionsList.length - 1;
+    if (selectedIndex === index) selectedIndex = -1;
+    else if (selectedIndex > index) selectedIndex--;
+
+    hasUnsavedChanges = true;
+    renderList();
+    renderBookmarks();
+    updateStats();
+    updateSaveStatus();
+
+    showToast('success', 'Bookmarked!',
+        `${option.college} — ${BRANCH_NAMES[option.branch] || option.branch} saved from position #${bookmark.originalPosition}`);
+}
+
+function restoreBookmark(bookmarkIndex) {
+    const bookmark = bookmarksList[bookmarkIndex];
+
+    // Check if already back in main list
+    const existingIdx = optionsList.findIndex(o =>
+        o.college === bookmark.college && o.branch === bookmark.branch);
+    if (existingIdx >= 0) {
+        showToast('error', 'Duplicate Option!',
+            `${bookmark.college} — ${BRANCH_NAMES[bookmark.branch] || bookmark.branch} is already at position #${existingIdx + 1}.`);
+        highlightItem(existingIdx);
+        return;
+    }
+
+    const option = {
+        id: bookmark.id || `${bookmark.college}+${bookmark.branch}_${Date.now()}`,
+        college: bookmark.college,
+        branch: bookmark.branch,
+        district: bookmark.district,
+        type: bookmark.type,
+        review: bookmark.review || false
+    };
+
+    // Insert at original position (clamped to current list bounds)
+    const insertAt = Math.min(bookmark.originalPosition - 1, optionsList.length);
+    optionsList.splice(insertAt, 0, option);
+
+    // Remove from bookmarks
+    bookmarksList.splice(bookmarkIndex, 1);
+
+    hasUnsavedChanges = true;
+    renderList();
+    renderBookmarks();
+    updateStats();
+    updateSaveStatus();
+
+    showToast('success', 'Restored!',
+        `${option.college} — ${BRANCH_NAMES[option.branch] || option.branch} re-added at position #${insertAt + 1}`);
+
+    // Highlight restored item
+    setTimeout(() => highlightItem(insertAt), 100);
+}
+
+function removeBookmark(bookmarkIndex) {
+    const removed = bookmarksList.splice(bookmarkIndex, 1)[0];
+    hasUnsavedChanges = true;
+    renderBookmarks();
+    updateStats();
+    updateSaveStatus();
+
+    showToast('info', 'Bookmark Removed',
+        `${removed.college} — ${BRANCH_NAMES[removed.branch] || removed.branch}`);
+}
+
+function renderBookmarks() {
+    if (bookmarksList.length === 0) {
+        bookmarksSection.style.display = 'none';
+        return;
+    }
+
+    // Sort bookmarks by their original position
+    bookmarksList.sort((a, b) => a.originalPosition - b.originalPosition);
+
+    bookmarksSection.style.display = 'block';
+    bookmarkCountBadge.textContent = bookmarksList.length;
+    bookmarksBody.innerHTML = '';
+
+    bookmarksList.forEach((bk, index) => {
+        const item = document.createElement('div');
+        item.className = 'bookmark-item';
+
+        item.innerHTML = `
+            <div class="bookmark-rank-info">
+                <div class="orig-pos">#${bk.originalPosition}</div>
+                <div class="pos-label">was at</div>
+            </div>
+            <div class="bookmark-details">
+                <div class="option-college-name">${bk.college} — ${BRANCH_NAMES[bk.branch] || bk.branch}</div>
+                <div class="option-meta">
+                    <span class="branch-tag">${bk.branch}</span>
+                    <span class="district-tag">📍 ${DISTRICT_NAMES[bk.district] || bk.district}</span>
+                    <span class="type-badge ${bk.type.toLowerCase()}">${bk.type}</span>
+                </div>
+            </div>
+            <div class="bookmark-actions">
+                <button class="btn-restore" title="Re-add to position #${bk.originalPosition}">↩ Restore to #${bk.originalPosition}</button>
+                <button class="btn-bookmark-delete" title="Discard bookmark">✕</button>
+            </div>
+        `;
+
+        item.querySelector('.btn-restore').addEventListener('click', () => restoreBookmark(index));
+        item.querySelector('.btn-bookmark-delete').addEventListener('click', () => {
+            confirmAction(
+                '🗑️ Discard Bookmark?',
+                `Are you sure you want to discard the bookmark for ${bk.college} — ${BRANCH_NAMES[bk.branch] || bk.branch}?`,
+                'Discard',
+                () => removeBookmark(index)
+            );
+        });
+
+        bookmarksBody.appendChild(item);
+    });
+}
+
+// ============================================
 //  UPDATE STATS
 // ============================================
 function updateStats() {
     statTotal.textContent = optionsList.length;
+    statBookmarks.textContent = bookmarksList.length;
+    statReview.textContent = optionsList.filter(o => !!o.review).length;
 }
 
 // ============================================
 //  LOCAL STORAGE
 // ============================================
-function saveToStorage() {
+function saveToStorage(isSilent) {
+    const silent = isSilent === true;
     try {
         localStorage.setItem('eapcet_options_list', JSON.stringify(optionsList));
+        localStorage.setItem('eapcet_bookmarks_list', JSON.stringify(bookmarksList));
         localStorage.setItem('eapcet_last_saved', new Date().toISOString());
         hasUnsavedChanges = false;
         updateSaveStatus();
-        showToast('success', 'Saved!', `${optionsList.length} options saved to local storage.`);
+        if (!silent) {
+            showToast('success', 'Saved!', `${optionsList.length} options + ${bookmarksList.length} bookmarks saved.`);
+        }
     } catch (e) {
-        showToast('error', 'Save Failed', 'Could not save to local storage. ' + e.message);
+        if (!silent) {
+            showToast('error', 'Save Failed', 'Could not save to local storage. ' + e.message);
+        }
     }
 }
 
@@ -2033,25 +2521,34 @@ function loadFromStorage() {
         const data = localStorage.getItem('eapcet_options_list');
         if (data) {
             optionsList = JSON.parse(data);
-            renderList();
-            updateStats();
-            showToast('info', 'Loaded', `${optionsList.length} options restored from local storage.`);
-        } else {
-            renderList();
+            // Backward compat: old options won't have 'review', defaults to falsy
+        }
+        const bkData = localStorage.getItem('eapcet_bookmarks_list');
+        if (bkData) {
+            bookmarksList = JSON.parse(bkData);
+        }
+        renderList();
+        renderBookmarks();
+        updateStats();
+        if (data) {
+            let msg = `${optionsList.length} options restored.`;
+            if (bookmarksList.length > 0) msg += ` ${bookmarksList.length} bookmarks loaded.`;
+            showToast('info', 'Loaded', msg);
         }
     } catch (e) {
         renderList();
+        renderBookmarks();
     }
 }
 
 function updateSaveStatus() {
-    const savedTime = localStorage.getItem('eapcet_last_saved');
-
     if (hasUnsavedChanges) {
-        saveStatus.innerHTML = '<div class="dot-unsaved"></div><span>Unsaved changes</span>';
-    } else {
-        saveStatus.innerHTML = '<div class="dot-saved"></div><span>All saved</span>';
+        saveToStorage(true);
+        return;
     }
+
+    const savedTime = localStorage.getItem('eapcet_last_saved');
+    saveStatus.innerHTML = '<div class="dot-saved"></div><span>Auto-saved</span>';
 
     if (savedTime) {
         const d = new Date(savedTime);
@@ -2071,7 +2568,7 @@ function exportJSON() {
     }
 
     const exportData = {
-        version: 1,
+        version: 2,
         exportedAt: new Date().toISOString(),
         optionsCount: optionsList.length,
         options: optionsList.map((o, i) => ({
@@ -2081,7 +2578,18 @@ function exportJSON() {
             branchName: BRANCH_NAMES[o.branch] || o.branch,
             district: o.district,
             districtName: DISTRICT_NAMES[o.district] || o.district,
-            type: o.type
+            type: o.type,
+            review: !!o.review
+        })),
+        bookmarks: bookmarksList.map(b => ({
+            college: b.college,
+            branch: b.branch,
+            branchName: BRANCH_NAMES[b.branch] || b.branch,
+            district: b.district,
+            districtName: DISTRICT_NAMES[b.district] || b.district,
+            type: b.type,
+            originalPosition: b.originalPosition,
+            bookmarkedAt: b.bookmarkedAt
         }))
     };
 
@@ -2126,18 +2634,44 @@ function importJSON(e) {
                     college: o.college,
                     branch: o.branch,
                     district: o.district || COLLEGE_DATA[o.college].district,
-                    type: o.type || COLLEGE_DATA[o.college].type
+                    type: o.type || COLLEGE_DATA[o.college].type,
+                    review: !!o.review
                 });
                 imported++;
             });
 
+            // Import bookmarks if present (v2+)
+            let importedBookmarks = 0;
+            if (data.bookmarks && Array.isArray(data.bookmarks)) {
+                data.bookmarks.forEach(b => {
+                    const alreadyBK = bookmarksList.some(existing =>
+                        existing.college === b.college && existing.branch === b.branch);
+                    const alreadyInList = optionsList.some(existing =>
+                        existing.college === b.college && existing.branch === b.branch);
+                    if (alreadyBK || alreadyInList) return;
+
+                    bookmarksList.push({
+                        id: `${b.college}+${b.branch}_${Date.now()}_${Math.random()}`,
+                        college: b.college,
+                        branch: b.branch,
+                        district: b.district || COLLEGE_DATA[b.college]?.district,
+                        type: b.type || COLLEGE_DATA[b.college]?.type,
+                        originalPosition: b.originalPosition || 1,
+                        bookmarkedAt: b.bookmarkedAt || new Date().toISOString()
+                    });
+                    importedBookmarks++;
+                });
+            }
+
             hasUnsavedChanges = true;
             renderList();
+            renderBookmarks();
             updateStats();
             updateSaveStatus();
 
             let msg = `${imported} options imported.`;
             if (duplicates > 0) msg += ` ${duplicates} duplicates skipped.`;
+            if (importedBookmarks > 0) msg += ` ${importedBookmarks} bookmarks imported.`;
             showToast('success', 'Import Complete', msg);
         } catch (err) {
             showToast('error', 'Import Failed', 'Invalid JSON file. ' + err.message);
