@@ -575,6 +575,7 @@
         }
 
         .option-item {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -584,18 +585,18 @@
             border: 1px solid var(--border-secondary);
             border-radius: var(--radius-sm);
             transition: var(--transition-normal);
-            animation: slideIn 0.3s ease-out;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        .bookmark-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            margin-bottom: 4px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-sm);
+            transition: var(--transition-normal);
         }
 
         .option-item:hover {
@@ -1415,6 +1416,9 @@
             .theme-toggle-label {
                 display: none;
             }
+            .kbd-hint {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -1535,6 +1539,9 @@
 
             <div class="list-toolbar">
                 <div class="toolbar-actions">
+                    <button class="btn btn-ghost btn-sm" id="btn-undo" title="Undo (Ctrl+Z)" disabled>↩️ Undo</button>
+                    <button class="btn btn-ghost btn-sm" id="btn-redo" title="Redo (Ctrl+Y)" disabled>↪️ Redo</button>
+                    <div class="divider" style="width:1px; background:var(--border-secondary); margin:0 4px;"></div>
                     <button class="btn btn-ghost btn-sm" id="btn-clear-all" title="Clear all options">🗑️ Clear All</button>
                     <button class="btn btn-ghost btn-sm" id="btn-export-json" title="Export as JSON">📥 Export</button>
                     <button class="btn btn-ghost btn-sm" id="btn-import-json" title="Import JSON file">📤 Import</button>
@@ -1552,10 +1559,12 @@
             </div>
 
             <div class="shortcuts-hint">
-                <div class="shortcut-item"><kbd>↑</kbd> Move Up</div>
-                <div class="shortcut-item"><kbd>↓</kbd> Move Down</div>
-                <div class="shortcut-item"><kbd>Del</kbd> Remove</div>
-                <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>S</kbd> Save</div>
+                <div class="shortcut-item kbd-hint"><kbd>↑</kbd> Move Up</div>
+                <div class="shortcut-item kbd-hint"><kbd>↓</kbd> Move Down</div>
+                <div class="shortcut-item kbd-hint"><kbd>Del</kbd> Remove</div>
+                <div class="shortcut-item kbd-hint"><kbd>Ctrl</kbd>+<kbd>S</kbd> Save</div>
+                <div class="shortcut-item kbd-hint"><kbd>Ctrl</kbd>+<kbd>Z</kbd> Undo</div>
+                <div class="shortcut-item kbd-hint"><kbd>Ctrl</kbd>+<kbd>Y</kbd> Redo</div>
                 <div class="shortcut-item">🔖 Bookmark</div>
                 <div class="shortcut-item">⚠ Review</div>
             </div>
@@ -1917,6 +1926,111 @@ let hasUnsavedChanges = false;
 let confirmCallback = null;
 
 // ============================================
+//  UNDO / REDO & FLIP ANIMATION STATE
+// ============================================
+let historyUndo = [];
+let historyRedo = [];
+
+function saveStateToHistory(actionName = 'Action') {
+    if (historyUndo.length > 50) historyUndo.shift();
+    historyUndo.push({
+        action: actionName,
+        options: JSON.parse(JSON.stringify(optionsList)),
+        bookmarks: JSON.parse(JSON.stringify(bookmarksList)),
+        selectedIndex: selectedIndex
+    });
+    historyRedo = [];
+    updateHistoryButtons();
+}
+
+function undo() {
+    if (historyUndo.length === 0) return;
+    const currentState = {
+        action: historyUndo[historyUndo.length - 1].action,
+        options: JSON.parse(JSON.stringify(optionsList)),
+        bookmarks: JSON.parse(JSON.stringify(bookmarksList)),
+        selectedIndex: selectedIndex
+    };
+    historyRedo.push(currentState);
+    const state = historyUndo.pop();
+    applyState(state);
+    showToast('info', 'Undo', `Reversed: ${state.action}`);
+}
+
+function redo() {
+    if (historyRedo.length === 0) return;
+    const currentState = {
+        action: historyRedo[historyRedo.length - 1].action,
+        options: JSON.parse(JSON.stringify(optionsList)),
+        bookmarks: JSON.parse(JSON.stringify(bookmarksList)),
+        selectedIndex: selectedIndex
+    };
+    historyUndo.push(currentState);
+    const state = historyRedo.pop();
+    applyState(state);
+    showToast('info', 'Redo', `Reapplied: ${state.action}`);
+}
+
+function applyState(state) {
+    optionsList = JSON.parse(JSON.stringify(state.options));
+    bookmarksList = JSON.parse(JSON.stringify(state.bookmarks));
+    selectedIndex = state.selectedIndex;
+    
+    withAnimation(() => {
+        renderList();
+        renderBookmarks();
+    });
+    
+    updateStats();
+    hasUnsavedChanges = true;
+    updateSaveStatus();
+    updateHistoryButtons();
+}
+
+function updateHistoryButtons() {
+    const btnUndo = document.getElementById('btn-undo');
+    const btnRedo = document.getElementById('btn-redo');
+    if (btnUndo) btnUndo.disabled = historyUndo.length === 0;
+    if (btnRedo) btnRedo.disabled = historyRedo.length === 0;
+}
+
+function capturePositions() {
+    const rects = new Map();
+    document.querySelectorAll('.option-item, .bookmark-item').forEach(el => {
+        if (el.dataset.id) rects.set(el.dataset.id, el.getBoundingClientRect());
+    });
+    return rects;
+}
+
+function applyFLIP(oldRects) {
+    document.querySelectorAll('.option-item, .bookmark-item').forEach(el => {
+        if (!el.dataset.id || !oldRects.has(el.dataset.id)) return;
+        const oldRect = oldRects.get(el.dataset.id);
+        const newRect = el.getBoundingClientRect();
+        const deltaX = oldRect.left - newRect.left;
+        const deltaY = oldRect.top - newRect.top;
+        if (deltaX !== 0 || deltaY !== 0) {
+            el.style.transition = 'none';
+            el.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            requestAnimationFrame(() => {
+                el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                el.style.transform = 'translate(0, 0)';
+                setTimeout(() => { 
+                    el.style.transition = ''; 
+                    el.style.transform = ''; 
+                }, 350);
+            });
+        }
+    });
+}
+
+function withAnimation(fn) {
+    const oldRects = capturePositions();
+    fn();
+    applyFLIP(oldRects);
+}
+
+// ============================================
 //  DOM REFERENCES
 // ============================================
 const districtSelect = document.getElementById('select-district');
@@ -1968,6 +2082,9 @@ function setupEventListeners() {
     branchSelect.addEventListener('change', onBranchChange);
     addBtn.addEventListener('click', addOption);
 
+    document.getElementById('btn-undo').addEventListener('click', undo);
+    document.getElementById('btn-redo').addEventListener('click', redo);
+
     document.getElementById('btn-save').addEventListener('click', saveToStorage);
     document.getElementById('btn-clear-all').addEventListener('click', () => {
         if (optionsList.length === 0) return;
@@ -2005,7 +2122,18 @@ function setupEventListeners() {
     document.addEventListener('keydown', (e) => {
         if (document.getElementById('modal-generic').classList.contains('active')) return;
 
-        if (e.ctrlKey && e.key === 's') {
+        if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            if (e.shiftKey) redo();
+            else undo();
+            return;
+        }
+        if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+            e.preventDefault();
+            redo();
+            return;
+        }
+        if (e.ctrlKey && e.key.toLowerCase() === 's') {
             e.preventDefault();
             saveToStorage();
             return;
@@ -2167,8 +2295,9 @@ function addOption() {
     };
 
     optionsList.push(option);
+    saveStateToHistory('Added ' + college);
     hasUnsavedChanges = true;
-    renderList();
+    withAnimation(() => renderList());
     updateStats();
     updateSaveStatus();
 
@@ -2200,6 +2329,7 @@ function renderList() {
         const item = document.createElement('div');
         item.className = 'option-item' + (index === selectedIndex ? ' selected' : '') + (isReview ? ' marked-review' : '');
         item.dataset.index = index;
+        item.dataset.id = option.id;
 
         item.innerHTML = `
             <div class="option-rank">${index + 1}</div>
@@ -2286,38 +2416,29 @@ function moveOption(index, direction) {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= optionsList.length) return;
 
-    // Swap
+    saveStateToHistory('Moved ' + optionsList[index].college);
     [optionsList[index], optionsList[newIndex]] = [optionsList[newIndex], optionsList[index]];
     selectedIndex = newIndex;
     hasUnsavedChanges = true;
 
-    renderList();
+    withAnimation(() => renderList());
     updateSaveStatus();
-
-    // Animate
-    const items = listContainer.querySelectorAll('.option-item');
-    if (items[newIndex]) {
-        items[newIndex].classList.add(direction === -1 ? 'moving-up' : 'moving-down');
-        setTimeout(() => items[newIndex].classList.remove('moving-up', 'moving-down'), 300);
-    }
-
-    // Scroll into view
-    if (items[newIndex]) {
-        items[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
 }
 
 // ============================================
 //  REMOVE OPTION
 // ============================================
 function removeOption(index) {
+    saveStateToHistory('Removed ' + optionsList[index].college);
     const removed = optionsList.splice(index, 1)[0];
-    if (selectedIndex >= optionsList.length) selectedIndex = optionsList.length - 1;
-    if (selectedIndex === index) selectedIndex = -1;
-    else if (selectedIndex > index) selectedIndex--;
+    if (selectedIndex === index) {
+        selectedIndex = -1;
+    } else if (selectedIndex > index) {
+        selectedIndex--;
+    }
 
     hasUnsavedChanges = true;
-    renderList();
+    withAnimation(() => renderList());
     updateStats();
     updateSaveStatus();
 
@@ -2343,10 +2464,15 @@ function highlightItem(index) {
 //  CLEAR ALL
 // ============================================
 function clearAll() {
+    saveStateToHistory('Clear All');
     optionsList = [];
+    bookmarksList = [];
     selectedIndex = -1;
     hasUnsavedChanges = true;
-    renderList();
+    withAnimation(() => {
+        renderList();
+        renderBookmarks();
+    });
     updateStats();
     updateSaveStatus();
     showToast('info', 'List Cleared', 'All options have been removed.');
@@ -2356,9 +2482,10 @@ function clearAll() {
 //  MARK FOR REVIEW
 // ============================================
 function toggleReview(index) {
+    saveStateToHistory('Flagged ' + optionsList[index].college);
     optionsList[index].review = !optionsList[index].review;
     hasUnsavedChanges = true;
-    renderList();
+    withAnimation(() => renderList());
     updateStats();
     updateSaveStatus();
 
@@ -2377,6 +2504,7 @@ function toggleReview(index) {
 // ============================================
 function bookmarkOption(index) {
     const option = optionsList[index];
+    
     // Check if already bookmarked
     const alreadyBookmarked = bookmarksList.some(b =>
         b.college === option.college && b.branch === option.branch);
@@ -2386,15 +2514,11 @@ function bookmarkOption(index) {
         return;
     }
 
+    saveStateToHistory('Bookmarked ' + option.college);
+
     const bookmark = {
-        id: option.id,
-        college: option.college,
-        branch: option.branch,
-        district: option.district,
-        type: option.type,
-        review: option.review || false,
-        originalPosition: index + 1, // 1-based
-        bookmarkedAt: new Date().toISOString()
+        ...option,
+        originalPosition: index + 1 // 1-based
     };
 
     bookmarksList.push(bookmark);
@@ -2406,8 +2530,10 @@ function bookmarkOption(index) {
     else if (selectedIndex > index) selectedIndex--;
 
     hasUnsavedChanges = true;
-    renderList();
-    renderBookmarks();
+    withAnimation(() => {
+        renderList();
+        renderBookmarks();
+    });
     updateStats();
     updateSaveStatus();
 
@@ -2417,6 +2543,7 @@ function bookmarkOption(index) {
 
 function restoreBookmark(bookmarkIndex) {
     const bookmark = bookmarksList[bookmarkIndex];
+    let insertIndex = bookmark.originalPosition - 1; // back to 0-indexed
 
     // Check if already back in main list
     const existingIdx = optionsList.findIndex(o =>
@@ -2427,40 +2554,36 @@ function restoreBookmark(bookmarkIndex) {
         highlightItem(existingIdx);
         return;
     }
-
-    const option = {
-        id: bookmark.id || `${bookmark.college}+${bookmark.branch}_${Date.now()}`,
-        college: bookmark.college,
-        branch: bookmark.branch,
-        district: bookmark.district,
-        type: bookmark.type,
-        review: bookmark.review || false
-    };
+    saveStateToHistory('Restored ' + bookmark.college);
 
     // Insert at original position (clamped to current list bounds)
-    const insertAt = Math.min(bookmark.originalPosition - 1, optionsList.length);
-    optionsList.splice(insertAt, 0, option);
+    const insertAt = Math.min(insertIndex, optionsList.length);
+    optionsList.splice(insertAt, 0, bookmark);
 
     // Remove from bookmarks
     bookmarksList.splice(bookmarkIndex, 1);
 
     hasUnsavedChanges = true;
-    renderList();
-    renderBookmarks();
+    withAnimation(() => {
+        renderList();
+        renderBookmarks();
+    });
     updateStats();
     updateSaveStatus();
 
     showToast('success', 'Restored!',
-        `${option.college} — ${BRANCH_NAMES[option.branch] || option.branch} re-added at position #${insertAt + 1}`);
+        `${bookmark.college} — ${BRANCH_NAMES[bookmark.branch] || bookmark.branch} re-added at position #${insertAt + 1}`);
 
     // Highlight restored item
     setTimeout(() => highlightItem(insertAt), 100);
 }
 
 function removeBookmark(bookmarkIndex) {
+    saveStateToHistory('Discarded ' + bookmarksList[bookmarkIndex].college);
     const removed = bookmarksList.splice(bookmarkIndex, 1)[0];
     hasUnsavedChanges = true;
-    renderBookmarks();
+
+    withAnimation(() => renderBookmarks());
     updateStats();
     updateSaveStatus();
 
@@ -2484,6 +2607,7 @@ function renderBookmarks() {
     bookmarksList.forEach((bk, index) => {
         const item = document.createElement('div');
         item.className = 'bookmark-item';
+        item.dataset.id = bk.id;
 
         item.innerHTML = `
             <div class="bookmark-rank-info">
@@ -2553,11 +2677,12 @@ function loadFromStorage() {
         const data = localStorage.getItem('eapcet_options_list');
         if (data) {
             optionsList = JSON.parse(data);
-            // Backward compat: old options won't have 'review', defaults to falsy
+            optionsList.forEach((opt, idx) => { if (!opt.id) opt.id = 'opt_' + idx + '_' + Date.now(); });
         }
         const bkData = localStorage.getItem('eapcet_bookmarks_list');
         if (bkData) {
             bookmarksList = JSON.parse(bkData);
+            bookmarksList.forEach((bk, idx) => { if (!bk.id) bk.id = 'bk_' + idx + '_' + Date.now(); });
         }
         renderList();
         renderBookmarks();
@@ -2644,17 +2769,24 @@ function importJSON(e) {
     reader.onload = (event) => {
         try {
             const data = JSON.parse(event.target.result);
-            if (!data.options || !Array.isArray(data.options)) {
+            if (!data.options && !Array.isArray(data)) {
                 throw new Error('Invalid format');
             }
+
+            saveStateToHistory('Import JSON');
+
+            const optionsData = data.version && data.version >= 2 ? data.options : data;
+            const bookmarksData = data.version && data.version >= 2 ? data.bookmarks : [];
 
             // Validate and import
             let imported = 0;
             let duplicates = 0;
-            data.options.forEach(o => {
+            optionsData.forEach(o => {
                 const exists = optionsList.some(existing =>
                     existing.college === o.college && existing.branch === o.branch);
-                if (exists) {
+                const existsBk = bookmarksList.some(existing =>
+                    existing.college === o.college && existing.branch === o.branch);
+                if (exists || existsBk) {
                     duplicates++;
                     return;
                 }
@@ -2674,13 +2806,16 @@ function importJSON(e) {
 
             // Import bookmarks if present (v2+)
             let importedBookmarks = 0;
-            if (data.bookmarks && Array.isArray(data.bookmarks)) {
-                data.bookmarks.forEach(b => {
+            if (bookmarksData && Array.isArray(bookmarksData)) {
+                bookmarksData.forEach(b => {
                     const alreadyBK = bookmarksList.some(existing =>
                         existing.college === b.college && existing.branch === b.branch);
                     const alreadyInList = optionsList.some(existing =>
                         existing.college === b.college && existing.branch === b.branch);
-                    if (alreadyBK || alreadyInList) return;
+                    if (alreadyBK || alreadyInList) {
+                        duplicates++;
+                        return;
+                    }
 
                     bookmarksList.push({
                         id: `${b.college}+${b.branch}_${Date.now()}_${Math.random()}`,
@@ -2688,16 +2823,20 @@ function importJSON(e) {
                         branch: b.branch,
                         district: b.district || COLLEGE_DATA[b.college]?.district,
                         type: b.type || COLLEGE_DATA[b.college]?.type,
-                        originalPosition: b.originalPosition || 1,
+                        originalPosition: b.originalPosition || optionsList.length + 1,
                         bookmarkedAt: b.bookmarkedAt || new Date().toISOString()
                     });
                     importedBookmarks++;
                 });
             }
 
+            selectedIndex = -1;
             hasUnsavedChanges = true;
-            renderList();
-            renderBookmarks();
+
+            withAnimation(() => {
+                renderList();
+                renderBookmarks();
+            });
             updateStats();
             updateSaveStatus();
 
