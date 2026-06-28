@@ -2769,14 +2769,19 @@ function importJSON(e) {
     reader.onload = (event) => {
         try {
             const data = JSON.parse(event.target.result);
-            if (!data.options && !Array.isArray(data)) {
+            let optionsData = [];
+            let bookmarksData = [];
+
+            if (Array.isArray(data)) {
+                optionsData = data;
+            } else if (data && data.options && Array.isArray(data.options)) {
+                optionsData = data.options;
+                bookmarksData = Array.isArray(data.bookmarks) ? data.bookmarks : [];
+            } else {
                 throw new Error('Invalid format');
             }
 
             saveStateToHistory('Import JSON');
-
-            const optionsData = data.version && data.version >= 2 ? data.options : data;
-            const bookmarksData = data.version && data.version >= 2 ? data.bookmarks : [];
 
             // Validate and import
             let imported = 0;
